@@ -1,0 +1,163 @@
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+class Book {
+public:
+    int id;
+    string name;
+    bool isIssued;
+
+    void addBook() {
+        cout << "Enter Book ID: ";
+        cin >> id;
+        cout << "Enter Book Name: ";
+        cin.ignore();
+        getline(cin, name);
+        isIssued = false;
+
+        ofstream file("books.txt", ios::app);
+        file << id << "," << name << "," << isIssued << endl;
+        file.close();
+
+        cout << "Book Added Successfully!\n";
+    }
+
+    void showBooks() {
+        ifstream file("books.txt");
+        string line;
+
+        cout << "\n--- Book List ---\n";
+        while (getline(file, line)) {
+            cout << line << endl;
+        }
+        file.close();
+    }
+};
+
+class Library : public Book {
+public:
+    void issueBook() {
+        int searchId;
+        cout << "Enter Book ID to Issue: ";
+        cin >> searchId;
+
+        ifstream file("books.txt");
+        ofstream temp("temp.txt");
+
+        string line;
+        bool found = false;
+
+        while (getline(file, line)) {
+            int id;
+            string name;
+            bool issued;
+
+            int pos1 = line.find(",");
+            int pos2 = line.rfind(",");
+
+            id = stoi(line.substr(0, pos1));
+            name = line.substr(pos1 + 1, pos2 - pos1 - 1);
+            issued = stoi(line.substr(pos2 + 1));
+
+            if (id == searchId && issued == 0) {
+                issued = 1;
+                found = true;
+                cout << "Book Issued!\n";
+            }
+
+            temp << id << "," << name << "," << issued << endl;
+        }
+
+        file.close();
+        temp.close();
+
+        remove("books.txt");
+        rename("temp.txt", "books.txt");
+
+        if (!found) {
+            cout << "Book not found or already issued!\n";
+        }
+    }
+
+    void returnBook() {
+        int searchId;
+        cout << "Enter Book ID to Return: ";
+        cin >> searchId;
+
+        ifstream file("books.txt");
+        ofstream temp("temp.txt");
+
+        string line;
+        bool found = false;
+
+        while (getline(file, line)) {
+            int id;
+            string name;
+            bool issued;
+
+            int pos1 = line.find(",");
+            int pos2 = line.rfind(",");
+
+            id = stoi(line.substr(0, pos1));
+            name = line.substr(pos1 + 1, pos2 - pos1 - 1);
+            issued = stoi(line.substr(pos2 + 1));
+
+            if (id == searchId && issued == 1) {
+                issued = 0;
+                found = true;
+                cout << "Book Returned!\n";
+            }
+
+            temp << id << "," << name << "," << issued << endl;
+        }
+
+        file.close();
+        temp.close();
+
+        remove("books.txt");
+        rename("temp.txt", "books.txt");
+
+        if (!found) {
+            cout << "Book not found or not issued!\n";
+        }
+    }
+};
+
+int main() {
+    Library lib;
+    int choice;
+
+    do {
+        cout << "\n===== Library Management System =====\n";
+        cout << "1. Add Book\n";
+        cout << "2. Show Books\n";
+        cout << "3. Issue Book\n";
+        cout << "4. Return Book\n";
+        cout << "0. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                lib.addBook();
+                break;
+            case 2:
+                lib.showBooks();
+                break;
+            case 3:
+                lib.issueBook();
+                break;
+            case 4:
+                lib.returnBook();
+                break;
+            case 0:
+                cout << "Exiting...\n";
+                break;
+            default:
+                cout << "Invalid choice!\n";
+        }
+    } while (choice != 0);
+
+    return 0;
+}
